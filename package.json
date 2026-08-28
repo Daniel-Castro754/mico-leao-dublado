@@ -1,21 +1,45 @@
 {
-    "name": "brazilian-stremio-addon",
-    "version": "0.0.1",
-    "description": "Stremio addon for dubbed movies in portuguese (brazil).",
-    "main": "index.js",
-    "scripts": {
-        "start": "node src/index.js",
-        "test": "jest",
-        "coverage": "jest --coverage"
-    },
-    "dependencies": {
-        "@types/jest": "^25.2.1",
-        "body-parser": "^1.19.0",
-        "magnet-uri": "^5.2.4",
-        "mongoose": "^5.9.10",
-        "stremio-addon-sdk": "^1.2.0"
-    },
-    "devDependencies": {
-        "jest": "^25.4.0"
-    }
+  "name": "mico-leao-dublado",
+  "version": "1.0.0",
+  "description": "Addon comunitário do Stremio para organizar um catálogo de filmes dublados em português brasileiro.",
+  "type": "module",
+  "main": "src/index.js",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=11.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "lint": "eslint .",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
+    "check": "npm run lint && npm test",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "db:check": "node scripts/check-legacy-data.js"
+  },
+  "keywords": [
+    "stremio",
+    "addon",
+    "portuguese",
+    "brazil"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@stremio-addon/node-express": "1.0.0",
+    "@stremio-addon/sdk": "1.0.0",
+    "express": "5.2.1",
+    "express-rate-limit": "8.6.2",
+    "helmet": "8.3.0",
+    "magnet-uri": "7.0.10",
+    "mongoose": "9.9.4",
+    "pino": "10.3.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.9.1",
+    "globals": "17.11.0"
+  }
 }

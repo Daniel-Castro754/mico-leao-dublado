@@ -1,1 +1,13 @@
+node_modules/
+coverage/
+.env
+.env.*
+!.env.example
+.npm-cache/
+.audit*.json
+*.log
+npm-debug.log*
 db/
+.DS_Store
+.idea/
+.vscode/
