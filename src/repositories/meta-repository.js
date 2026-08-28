@@ -58,7 +58,7 @@ export class MetaRepository {
     return this.model.findOneAndUpdate(
       { id },
       { $set: { disabledAt } },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).select(adminProjection).lean().exec()
   }
 
@@ -68,7 +68,7 @@ export class MetaRepository {
       { $set: meta },
       {
         upsert: true,
-        new: true,
+        returnDocument: 'after',
         runValidators: true,
         setDefaultsOnInsert: true
       }

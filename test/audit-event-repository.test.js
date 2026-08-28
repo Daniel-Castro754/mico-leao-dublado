@@ -70,7 +70,7 @@ test('AuditEventRepository inicia e finaliza eventos normalizados', async () => 
   assert.equal(finishedArguments[0], 'event-1')
   assert.equal(finishedArguments[1].$set.status, 'completed')
   assert.ok(finishedArguments[1].$set.completedAt instanceof Date)
-  assert.deepEqual(finishedArguments[2], { new: true, runValidators: true })
+  assert.deepEqual(finishedArguments[2], { returnDocument: 'after', runValidators: true })
   assert.deepEqual(finishedQuery.calls, [
     ['select', { __v: 0 }],
     ['lean'],

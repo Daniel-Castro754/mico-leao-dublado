@@ -128,7 +128,7 @@ test('MetaRepository atualiza o estado de moderação', async () => {
   assert.deepEqual(receivedArguments, [
     { id: meta.id },
     { $set: { disabledAt } },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   ])
   assert.deepEqual(calls, [['select', { _id: 0 }], ['lean'], ['exec']])
 })
@@ -150,7 +150,12 @@ test('MetaRepository faz upsert atômico com validação do Mongoose', async () 
   assert.deepEqual(receivedArguments, [
     { id: meta.id },
     { $set: meta },
-    { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+    {
+      upsert: true,
+      returnDocument: 'after',
+      runValidators: true,
+      setDefaultsOnInsert: true
+    }
   ])
   assert.deepEqual(calls, [['lean'], ['exec']])
 })

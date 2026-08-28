@@ -27,7 +27,7 @@ export class AuditEventRepository {
           completedAt: new Date()
         }
       },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).select(publicProjection).lean().exec()
     return normalizeEvent(event)
   }
