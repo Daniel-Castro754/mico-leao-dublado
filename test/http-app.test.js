@@ -54,6 +54,8 @@ function buildApplication({
     manifest,
     metaRepository,
     streamRepository,
+    defaultTrackerSources: config.defaultTrackerSources,
+    maxTrackerSources: config.trackerMaxSources,
     logger: silentLogger
   })
 
@@ -145,6 +147,39 @@ test('API administrativa exige Bearer token e valida o payload', async () => {
     assert.equal(authorized.status, 200)
     assert.equal((await authorized.json()).data.metaId, validMovie.meta.id)
     assert.equal(receivedMovie.meta.id, validMovie.meta.id)
+  })
+})
+
+test('API normaliza trackers legados e acrescenta trackers globais com limite', async () => {
+  const app = buildApplication({
+    config: {
+      ...testConfig,
+      defaultTrackerSources: [
+        'tracker:udp://default.example:1337/announce',
+        'tracker:https://second.example/announce'
+      ],
+      trackerMaxSources: 2
+    },
+    streamRepository: {
+      async findByMetaId() {
+        return [{
+          metaId: validMovie.meta.id,
+          type: 'movie',
+          title: 'Filme de teste',
+          infoHash: 'd2474e86c95b19b8bcfdb92bc12c9d44667cfa36',
+          sources: ['udp://legacy.example:80/announce']
+        }]
+      }
+    }
+  })
+
+  await useServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/stream/movie/${validMovie.meta.id}.json`)
+    assert.equal(response.status, 200)
+    assert.deepEqual((await response.json()).streams[0].sources, [
+      'tracker:udp://legacy.example:80/announce',
+      'tracker:udp://default.example:1337/announce'
+    ])
   })
 })
 

@@ -10,14 +10,15 @@
     "npm": ">=11.0.0"
   },
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "dev": "node --env-file-if-exists=.env --watch src/index.js",
     "lint": "eslint .",
     "test": "node --test",
     "test:coverage": "node --test --experimental-test-coverage",
     "check": "npm run lint && npm test",
     "audit:prod": "npm audit --omit=dev --audit-level=high",
-    "db:check": "node scripts/check-legacy-data.js"
+    "db:check": "node --env-file-if-exists=.env scripts/check-legacy-data.js",
+    "trackers:update": "node scripts/update-trackers.js"
   },
   "keywords": [
     "stremio",

@@ -1,4 +1,5 @@
 import { decode } from 'magnet-uri'
+import { parseTrackerSources } from '../trackers.js'
 
 export function assembleMovie(movie) {
   const streamsByInfoHash = new Map()
@@ -16,10 +17,10 @@ export function assembleMovie(movie) {
     }
 
     const infoHash = decoded.infoHash.toLowerCase()
-    const sources = [...new Set(
-      (Array.isArray(decoded.announce) ? decoded.announce : [])
-        .filter((source) => typeof source === 'string' && source.length <= 2_048)
-    )]
+    const sources = parseTrackerSources(
+      Array.isArray(decoded.announce) ? decoded.announce : [],
+      { limit: 50 }
+    )
 
     streamsByInfoHash.set(infoHash, {
       metaId: movie.meta.id,

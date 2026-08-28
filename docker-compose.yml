@@ -9,6 +9,8 @@ services:
       PORT: 3000
       MONGODB_URI: mongodb://mongo:27017/mico-leao-dublado
       INGEST_API_KEY: ${INGEST_API_KEY:-}
+      DEFAULT_TRACKERS: ${DEFAULT_TRACKERS:-}
+      TRACKER_MAX_SOURCES: ${TRACKER_MAX_SOURCES:-30}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       mongo:

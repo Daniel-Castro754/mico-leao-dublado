@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { parseTrackerSources } from './trackers.js'
 
 const emptyStringToUndefined = (value) => value === '' ? undefined : value
 
@@ -22,6 +23,11 @@ const environmentSchema = z.object({
     emptyStringToUndefined,
     z.string().min(32, 'INGEST_API_KEY deve ter pelo menos 32 caracteres').optional()
   ),
+  DEFAULT_TRACKERS: z.preprocess(
+    emptyStringToUndefined,
+    z.string().max(65_536, 'DEFAULT_TRACKERS excede o limite permitido').optional()
+  ),
+  TRACKER_MAX_SOURCES: z.coerce.number().int().min(1).max(100).default(30),
   DB_CONNECT_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
   DB_CONNECT_RETRY_MS: z.coerce.number().int().min(100).max(60_000).default(2_000),
   DB_SERVER_SELECTION_TIMEOUT_MS: z.coerce.number().int().min(500).max(60_000).default(5_000),
@@ -39,6 +45,10 @@ export function loadConfig(environment = process.env) {
     throw new Error(`Configuração inválida: ${details}`)
   }
 
+  const defaultTrackerSources = parseTrackerSources(result.data.DEFAULT_TRACKERS, {
+    limit: result.data.TRACKER_MAX_SOURCES
+  })
+
   return Object.freeze({
     nodeEnv: result.data.NODE_ENV,
     port: result.data.PORT,
@@ -46,6 +56,8 @@ export function loadConfig(environment = process.env) {
     logLevel: result.data.LOG_LEVEL,
     trustProxy: result.data.TRUST_PROXY,
     ingestApiKey: result.data.INGEST_API_KEY,
+    defaultTrackerSources: Object.freeze(defaultTrackerSources),
+    trackerMaxSources: result.data.TRACKER_MAX_SOURCES,
     dbConnectMaxAttempts: result.data.DB_CONNECT_MAX_ATTEMPTS,
     dbConnectRetryMs: result.data.DB_CONNECT_RETRY_MS,
     dbServerSelectionTimeoutMs: result.data.DB_SERVER_SELECTION_TIMEOUT_MS,

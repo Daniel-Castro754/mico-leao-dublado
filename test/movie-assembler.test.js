@@ -13,7 +13,7 @@ test('assembleMovie converte magnets em streams do Stremio', () => {
     type: 'movie',
     title: 'Filme de teste 1080p Dublado',
     infoHash: 'd2474e86c95b19b8bcfdb92bc12c9d44667cfa36',
-    sources: ['udp://tracker.example.com:80']
+    sources: ['tracker:udp://tracker.example.com:80']
   })
 })
 

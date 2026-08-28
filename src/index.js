@@ -56,6 +56,8 @@ export async function startServer(environment = process.env) {
     manifest,
     metaRepository,
     streamRepository,
+    defaultTrackerSources: config.defaultTrackerSources,
+    maxTrackerSources: config.trackerMaxSources,
     logger
   })
   const app = createApplication({

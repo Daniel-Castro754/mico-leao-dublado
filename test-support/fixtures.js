@@ -34,6 +34,8 @@ export const testConfig = Object.freeze({
   logLevel: 'silent',
   trustProxy: false,
   ingestApiKey: 'test-api-key-with-at-least-32-characters',
+  defaultTrackerSources: [],
+  trackerMaxSources: 30,
   dbConnectMaxAttempts: 1,
   dbConnectRetryMs: 100,
   dbServerSelectionTimeoutMs: 500,

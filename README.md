@@ -8,6 +8,7 @@ Esta é uma modernização do projeto original, agora com Node.js 24, SDK Stremi
 
 - Catálogo de filmes com busca, gêneros e paginação.
 - Streams BitTorrent representados por `infoHash` e trackers.
+- Trackers globais opcionais com validação, deduplicação e limite por stream.
 - Manifesto estático e disponível independentemente dos dados do catálogo.
 - MongoDB com índices únicos contra duplicatas.
 - Importação administrativa protegida por Bearer token.
@@ -76,7 +77,7 @@ http://localhost:8080/manifest.json
    cp .env.example .env
    ```
 
-3. Exporte as variáveis do `.env` usando a ferramenta de sua preferência e execute:
+3. Execute a aplicação. O Node.js carrega o arquivo `.env` automaticamente quando ele existe:
 
    ```bash
    npm start
@@ -98,6 +99,8 @@ npm run dev
 | `LOG_LEVEL` | Não | `info` | Nível dos logs estruturados. |
 | `TRUST_PROXY` | Não | `false` | Ative somente atrás de um proxy conhecido. |
 | `INGEST_API_KEY` | Não | desabilitada | Chave de no mínimo 32 caracteres para a API administrativa. |
+| `DEFAULT_TRACKERS` | Não | vazia | URLs adicionais separadas por vírgula ou espaço. Aceita `udp`, `http` e `https`. |
+| `TRACKER_MAX_SOURCES` | Não | `30` | Limite de trackers retornados por stream, entre 1 e 100. |
 | `DB_CONNECT_MAX_ATTEMPTS` | Não | `5` | Número máximo de tentativas de conexão. |
 | `DB_CONNECT_RETRY_MS` | Não | `2000` | Intervalo base entre tentativas. |
 | `DB_SERVER_SELECTION_TIMEOUT_MS` | Não | `5000` | Timeout de seleção do servidor MongoDB. |
@@ -105,6 +108,38 @@ npm run dev
 | `ADMIN_RATE_LIMIT_MAX` | Não | `30` | Requisições permitidas por janela. |
 
 Não monte URIs a partir de usuário e senha dentro do código e nunca registre `MONGODB_URI` ou `INGEST_API_KEY` nos logs.
+
+## Trackers públicos
+
+Trackers não armazenam o arquivo do filme. Eles ajudam o cliente BitTorrent a descobrir pares para um `infoHash`. O endereço IP do cliente e o `infoHash` consultado são normalmente visíveis para o tracker, portanto adicionar centenas de endpoints desconhecidos piora tráfego, latência, confiabilidade e privacidade em vez de garantir mais pares.
+
+O addon trata trackers em duas camadas:
+
+1. trackers já presentes no magnet, que têm prioridade;
+2. trackers globais definidos em `DEFAULT_TRACKERS`, usados como complemento.
+
+As entradas são validadas, normalizadas para o formato `tracker:<protocolo>://...` exigido pelo SDK do Stremio, deduplicadas e limitadas por `TRACKER_MAX_SOURCES`. Dados antigos que ainda contenham URLs sem o prefixo `tracker:` são corrigidos ao serem retornados, sem exigir migração do MongoDB.
+
+### Atualizar a lista recomendada
+
+Com acesso à internet, execute:
+
+```bash
+npm run trackers:update
+```
+
+O comando consulta exclusivamente a lista [`trackers_best.txt`](https://github.com/ngosang/trackerslist/blob/master/trackers_best.txt), que é verificada e atualizada diariamente, mantém no máximo 20 trackers compatíveis e grava o resultado em `DEFAULT_TRACKERS` no arquivo `.env`. Outras variáveis existentes, incluindo `INGEST_API_KEY`, são preservadas.
+
+O servidor não consulta a lista remota durante a inicialização. Assim, uma indisponibilidade do GitHub não impede o addon de iniciar e uma alteração remota não muda silenciosamente os trackers usados em produção. Execute a atualização novamente quando quiser revisar a lista.
+
+### Listas analisadas
+
+- [`baairon/torlink`](https://github.com/baairon/torlink) é um cliente, pesquisador e downloader baseado em WebTorrent, não um servidor de tracker. O projeto serviu como referência para a configuração suplementar, mas não foi adicionado como dependência.
+- [`ngosang/trackerslist`](https://github.com/ngosang/trackerslist) é a fonte recomendada por manter verificação diária, ordenação e blacklist.
+- [`UltimateBTTrackersList`](https://github.com/kris3713/UltimateBTTrackersList) agrega listas maiores, mas quantidade não significa qualidade e a agregação pode reintroduzir trackers marcados como problemáticos por outras fontes.
+- Listas antigas copiadas de fóruns ou arquivos não devem ser incorporadas integralmente. Muitos domínios deixam de existir, mudam de proprietário ou passam a retornar pares falsos.
+
+Trackers `ws` e `wss` não são adicionados porque o formato de stream BitTorrent documentado pelo SDK utilizado pelo addon aceita trackers HTTP(S) e UDP. Não coloque credenciais, passkeys de trackers privados ou tokens dentro de `DEFAULT_TRACKERS`.
 
 ## Adicionar ao Stremio
 
@@ -306,7 +341,8 @@ src/
 ├── database.js    # Ciclo de vida do MongoDB
 ├── index.js       # Inicialização e encerramento
 ├── logger.js      # Logs estruturados e sanitização
-└── manifest.js    # Manifesto estático
+├── manifest.js    # Manifesto estático
+└── trackers.js    # Validação, normalização e deduplicação de trackers
 ```
 
 ## Produção
@@ -317,6 +353,7 @@ Antes de publicar:
 - Use HTTPS em um proxy ou plataforma confiável.
 - Mantenha o MongoDB em rede privada, com autenticação e backups.
 - Use uma `INGEST_API_KEY` aleatória e rotacione-a periodicamente.
+- Revise periodicamente `DEFAULT_TRACKERS` e evite listas antigas ou excessivamente grandes.
 - Não exponha a API administrativa se ela não for necessária.
 - Execute `npm run check` e `npm run audit:prod` no deploy.
 - Monitore `/health/ready`, erros e latência.

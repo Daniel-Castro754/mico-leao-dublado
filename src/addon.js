@@ -1,5 +1,6 @@
 import { AddonBuilder } from '@stremio-addon/sdk'
 import { toLogError } from './logger.js'
+import { mergeTrackerSources } from './trackers.js'
 
 const CATALOG_PAGE_SIZE = 100
 const MAX_SKIP = 100_000
@@ -10,7 +11,14 @@ function parseSkip(value) {
   return Math.min(parsed, MAX_SKIP)
 }
 
-export function createAddonInterface({ manifest, metaRepository, streamRepository, logger }) {
+export function createAddonInterface({
+  manifest,
+  metaRepository,
+  streamRepository,
+  defaultTrackerSources = [],
+  maxTrackerSources = 30,
+  logger
+}) {
   const builder = new AddonBuilder(manifest)
 
   builder.defineStreamHandler(async ({ type, id }) => {
@@ -22,7 +30,16 @@ export function createAddonInterface({ manifest, metaRepository, streamRepositor
       if (!await metaRepository.isAvailable(id)) {
         return { streams: [] }
       }
-      return { streams: await streamRepository.findByMetaId(id) }
+      const streams = await streamRepository.findByMetaId(id)
+      return {
+        streams: streams.map((stream) => ({
+          ...stream,
+          sources: mergeTrackerSources(
+            [stream.sources, defaultTrackerSources],
+            { limit: maxTrackerSources }
+          )
+        }))
+      }
     } catch (error) {
       logger.error({ error: toLogError(error), type, id }, 'Falha ao consultar streams')
       return { streams: [] }
