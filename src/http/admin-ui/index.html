@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Painel administrativo · Mico-Leão Dublado</title>
+  <link rel="stylesheet" href="/admin/assets/styles.css">
+  <script src="/admin/assets/app.js" type="module"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Voltar para a página inicial">
+      <span class="brand-mark" aria-hidden="true">ML</span>
+      <span>
+        <strong>Mico-Leão Dublado</strong>
+        <small>Painel administrativo</small>
+      </span>
+    </a>
+    <span class="environment">Administração segura</span>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar" aria-label="Autenticação administrativa">
+      <section class="panel auth-panel">
+        <div class="section-heading">
+          <span class="eyebrow">Acesso</span>
+          <h1>Conectar ao painel</h1>
+          <p>A chave permanece somente na memória desta aba e é apagada ao recarregar a página.</p>
+        </div>
+
+        <form id="credentials-form">
+          <label for="api-key">Chave administrativa</label>
+          <div class="secret-field">
+            <input id="api-key" name="api-key" type="password" autocomplete="off" required
+              placeholder="INGEST_API_KEY">
+            <button id="toggle-secret" class="icon-button" type="button" aria-label="Mostrar chave">Mostrar</button>
+          </div>
+
+          <label for="moderator-id">Identificação do moderador <span>opcional</span></label>
+          <input id="moderator-id" name="moderator-id" type="text" maxlength="100"
+            autocomplete="off" placeholder="ex.: daniel.castro">
+
+          <button class="primary-button" type="submit">Usar nesta aba</button>
+        </form>
+
+        <div id="connection-status" class="connection-status" data-state="disconnected" role="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Chave não informada</span>
+        </div>
+      </section>
+
+      <section class="security-note">
+        <strong>Boas práticas</strong>
+        <p>Use HTTPS fora do ambiente local. Nunca compartilhe capturas contendo a chave ou magnets.</p>
+      </section>
+    </aside>
+
+    <section class="workspace" aria-label="Moderação de filmes">
+      <div class="workspace-header">
+        <div>
+          <span class="eyebrow">Catálogo</span>
+          <h2>Consultar e moderar</h2>
+        </div>
+        <form id="search-form" class="search-form" role="search">
+          <label class="visually-hidden" for="movie-id">IMDb ID</label>
+          <input id="movie-id" name="movie-id" type="search" required pattern="tt[0-9]+"
+            placeholder="tt1234567" aria-describedby="search-help">
+          <button class="primary-button" type="submit">Buscar filme</button>
+          <small id="search-help">Informe um identificador IMDb começando com “tt”.</small>
+        </form>
+      </div>
+
+      <div id="notice" class="notice" role="status" hidden></div>
+
+      <section id="empty-state" class="empty-state">
+        <div class="empty-icon" aria-hidden="true">⌕</div>
+        <h3>Nenhum filme selecionado</h3>
+        <p>Conecte sua chave administrativa e pesquise um IMDb ID para visualizar metadados, streams e histórico.</p>
+      </section>
+
+      <div id="movie-content" class="movie-content" hidden>
+        <section class="panel movie-summary">
+          <div>
+            <div class="summary-line">
+              <span id="movie-status" class="badge">—</span>
+              <code id="summary-id">—</code>
+            </div>
+            <h3 id="summary-name">—</h3>
+            <p id="summary-description" class="description">Sem descrição.</p>
+          </div>
+          <div class="moderation-actions">
+            <button id="disable-button" class="danger-button" type="button">Desativar filme</button>
+            <button id="restore-button" class="secondary-button" type="button">Restaurar filme</button>
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Resumo do filme">
+          <article class="metric-card">
+            <span>Streams</span>
+            <strong id="metric-streams">0</strong>
+          </article>
+          <article class="metric-card">
+            <span>Avaliação IMDb</span>
+            <strong id="metric-rating">—</strong>
+          </article>
+          <article class="metric-card">
+            <span>Lançamento</span>
+            <strong id="metric-release">—</strong>
+          </article>
+          <article class="metric-card">
+            <span>Última atualização</span>
+            <strong id="metric-updated">—</strong>
+          </article>
+        </section>
+
+        <div class="content-grid">
+          <section class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">Disponibilidade</span>
+                <h3>Streams armazenados</h3>
+              </div>
+              <span id="streams-count" class="count-pill">0</span>
+            </div>
+            <div id="streams-list" class="item-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">Rastreabilidade</span>
+                <h3>Histórico administrativo</h3>
+              </div>
+              <button id="refresh-audit" class="text-button" type="button">Atualizar</button>
+            </div>
+            <div id="audit-list" class="timeline"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>O painel não armazena a chave no navegador.</span>
+    <span id="request-id">Nenhuma requisição realizada.</span>
+  </footer>
+</body>
+</html>

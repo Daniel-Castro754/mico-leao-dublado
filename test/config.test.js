@@ -1,45 +1,34 @@
-var mongoose = require('mongoose')
-const timeout = require('./timeout')
+import assert from 'node:assert/strict'
+import test from 'node:test'
+import { loadConfig } from '../src/config.js'
 
-it('Should exists and be in a default state', () => {
-    expect(mongoose.connection.readyState).toEqual(mongoose.connection.states.disconnected)
+test('loadConfig aplica padrões seguros', () => {
+  const config = loadConfig({ MONGODB_URI: 'mongodb://localhost:27017/test' })
+
+  assert.equal(config.port, 3000)
+  assert.equal(config.nodeEnv, 'development')
+  assert.equal(config.ingestApiKey, undefined)
+  assert.equal(config.trustProxy, false)
+  assert.ok(Object.isFrozen(config))
 })
 
-describe('Mongo connection dependent tets', ()=>{
-    beforeAll(async () => {
-        await require('../src/config')
-    })
-    afterAll(async () => {
-        await mongoose.disconnect().catch(fail)
-    })
-    it('Should connect to running database', async () => {
-        await timeout(500)
-        await expect(mongoose.connection.readyState).toEqual(mongoose.connection.states.connected)
-    })
-    async function createModel() {
-        const Schema = mongoose.Schema
-    
-        const AccountSchema = new Schema({
-            name: {
-                type: 'String',
-                required: true,
-            }
-        })
-    
-        return mongoose.model('Account', AccountSchema)
-    }
-    it('Should be allowed to save and find a new model to db', async () => {
-        const Account = await createModel()
-        var account = new Account({
-            name: "Teste"
-        })
-    
-        await account.save()
-        var obtained_account = await Account.findById(account.id)
-    
-        expect(account.name).toEqual(obtained_account.name)
+test('loadConfig aceita Atlas e converte valores do ambiente', () => {
+  const config = loadConfig({
+    NODE_ENV: 'production',
+    PORT: '8080',
+    MONGODB_URI: 'mongodb+srv://example.mongodb.net/catalog',
+    TRUST_PROXY: 'true',
+    INGEST_API_KEY: 'a'.repeat(32)
+  })
 
-        await Account.deleteMany({}).exec()
-    })
+  assert.equal(config.port, 8080)
+  assert.equal(config.trustProxy, true)
+  assert.equal(config.ingestApiKey, 'a'.repeat(32))
+})
 
+test('loadConfig rejeita URI e chave administrativa inválidas sem expor segredo', () => {
+  assert.throws(
+    () => loadConfig({ MONGODB_URI: 'http://localhost', INGEST_API_KEY: 'curta' }),
+    /Configuração inválida/
+  )
 })
